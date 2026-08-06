@@ -134,6 +134,10 @@ jobs:
       - name: Fetch Flutter pub dependencies
         run: flutter pub get
 
+      - name: Patch deprecated upstream ffmpeg-kit macOS podspec
+        run: |
+          find ~/.pub-cache -name "ffmpeg_kit_flutter_audio.podspec" -exec sed -i '' 's/s.dependency.*ffmpeg-kit-macos.*/# skipped/g' {} + || true
+
       - name: Build macOS release binary
         run: flutter build macos --release
 
