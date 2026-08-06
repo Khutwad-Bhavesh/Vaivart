@@ -83,7 +83,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Transmute', style: AppTypography.label.copyWith(color: AppColors.teal, letterSpacing: 0.1)),
+                Text('Vaivart', style: AppTypography.label.copyWith(color: AppColors.teal, letterSpacing: 0.1)),
                 const SizedBox(height: 12),
                 Text('How should it work?', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: textPrimary)),
                 const SizedBox(height: 6),

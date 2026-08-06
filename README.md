@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="assets/icons/icon_128.png" width="96" height="96" alt="Transmute Icon"/>
+<img src="assets/icons/icon_128.png" width="96" height="96" alt="Vaivart Icon"/>
 
-# Transmute
+# Vaivart
 
 **The WinRAR of file conversion.**
 Free. Offline. Open source. Forever.
@@ -11,7 +11,7 @@ Free. Offline. Open source. Forever.
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey)](#)
 [![License](https://img.shields.io/badge/License-MIT-1D9E75)](#license)
 [![Status](https://img.shields.io/badge/Status-v1.0.0-brightgreen)](#)
-[![Build](https://img.shields.io/github/actions/workflow/status/Khutwad-Bhavesh/Transmute/release.yml?label=build)](https://github.com/Khutwad-Bhavesh/Transmute/actions)
+[![Build](https://img.shields.io/github/actions/workflow/status/Khutwad-Bhavesh/Vaivart/release.yml?label=build)](https://github.com/Khutwad-Bhavesh/Vaivart/actions)
 
 No ads. No watermarks. No sign-in. No internet. No nonsense.
 
@@ -21,9 +21,9 @@ No ads. No watermarks. No sign-in. No internet. No nonsense.
 
 ---
 
-## What is Transmute?
+## What is Vaivart?
 
-Transmute is a desktop file converter that does exactly what it says — converts files. Nothing else. No cloud uploads, no account creation, no watermarks on your PDFs, no telemetry. Install once, use forever.
+Vaivart is a desktop file converter that does exactly what it says — converts files. Nothing else. No cloud uploads, no account creation, no watermarks on your PDFs, no telemetry. Install once, use forever.
 
 Inspired by WinRAR's philosophy: simple, reliable, always there when you need it.
 
@@ -33,9 +33,9 @@ Inspired by WinRAR's philosophy: simple, reliable, always there when you need it
 
 | Platform | Link |
 |----------|------|
-| 🐧 Linux | [Transmute-linux-x64.tar.gz](https://github.com/Khutwad-Bhavesh/Transmute/releases/latest) |
-| 🪟 Windows | [Transmute-windows-x64.zip](https://github.com/Khutwad-Bhavesh/Transmute/releases/latest) |
-| 🍎 macOS | [Transmute-macos.zip](https://github.com/Khutwad-Bhavesh/Transmute/releases/latest) |
+| 🐧 Linux | [Vaivart-linux-x64.tar.gz](https://github.com/Khutwad-Bhavesh/Vaivart/releases/latest) |
+| 🪟 Windows | [Vaivart-windows-x64.zip](https://github.com/Khutwad-Bhavesh/Vaivart/releases/latest) |
+| 🍎 macOS | [Vaivart-macos.zip](https://github.com/Khutwad-Bhavesh/Vaivart/releases/latest) |
 
 ---
 
@@ -84,8 +84,8 @@ Pick your engine on first launch. Change anytime in Settings.
 ```bash
 sudo pacman -S flutter ffmpeg libreoffice calibre libheif
 
-git clone https://github.com/Khutwad-Bhavesh/Transmute.git
-cd Transmute
+git clone https://github.com/Khutwad-Bhavesh/Vaivart.git
+cd Vaivart
 
 flutter pub get
 flutter run -d linux
@@ -96,8 +96,8 @@ flutter run -d linux
 ```bash
 sudo apt install flutter ffmpeg libreoffice calibre libheif-examples
 
-git clone https://github.com/Khutwad-Bhavesh/Transmute.git
-cd Transmute
+git clone https://github.com/Khutwad-Bhavesh/Vaivart.git
+cd Vaivart
 
 flutter pub get
 flutter run -d linux
@@ -106,8 +106,8 @@ flutter run -d linux
 ### Windows
 
 ```bash
-git clone https://github.com/Khutwad-Bhavesh/Transmute.git
-cd Transmute
+git clone https://github.com/Khutwad-Bhavesh/Vaivart.git
+cd Vaivart
 flutter pub get
 flutter run -d windows
 ```
@@ -115,8 +115,8 @@ flutter run -d windows
 ### macOS
 
 ```bash
-git clone https://github.com/Khutwad-Bhavesh/Transmute.git
-cd Transmute
+git clone https://github.com/Khutwad-Bhavesh/Vaivart.git
+cd Vaivart
 flutter pub get
 flutter run -d macos
 ```

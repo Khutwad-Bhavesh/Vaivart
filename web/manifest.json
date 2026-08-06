@@ -1,11 +1,11 @@
 {
-    "name": "Transmute",
-    "short_name": "Transmute",
+    "name": "Vaivart",
+    "short_name": "Vaivart",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Vaivart — Free, offline, open-source file converter.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

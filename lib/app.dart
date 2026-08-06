@@ -16,7 +16,7 @@ class FileConverterApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Transmute',
+      title: 'Vaivart',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.system,
       theme: _buildLight(),

@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'package:transmute/core/services/output_service.dart';
-import 'package:transmute/core/services/history_service.dart';
-import 'package:transmute/core/engine/engine_config.dart';
+import 'package:vaivart/core/services/output_service.dart';
+import 'package:vaivart/core/services/history_service.dart';
+import 'package:vaivart/core/engine/engine_config.dart';
 import 'image_converter.dart';
 import 'pdf_converter.dart';
 import 'data_converter.dart';

@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.transmute.app"
+    namespace = "com.vaivart.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -19,7 +19,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.transmute.app"
+        applicationId = "com.vaivart.app"
         minSdk = 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "Transmute" "\0"
+            VALUE "CompanyName", "com.vaivart" "\0"
+            VALUE "FileDescription", "Vaivart" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "Transmute" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "transmute.exe" "\0"
-            VALUE "ProductName", "Transmute" "\0"
+            VALUE "InternalName", "Vaivart" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.vaivart. All rights reserved." "\0"
+            VALUE "OriginalFilename", "vaivart.exe" "\0"
+            VALUE "ProductName", "Vaivart" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
