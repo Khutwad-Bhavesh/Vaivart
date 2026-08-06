@@ -108,9 +108,10 @@ jobs:
       - name: Package Windows Zip
         shell: pwsh
         run: |
+          Set-Location $env:GITHUB_WORKSPACE
           $releaseDir = Get-ChildItem -Path build/windows -Recurse -Directory -Filter "Release" | Select-Object -ExpandProperty FullName -First 1
-          Write-Host "Found Windows Release dir: $releaseDir"
-          Compress-Archive -Path "$releaseDir\*" -DestinationPath "$env:GITHUB_WORKSPACE\Vaivart-windows-x64.zip"
+          Write-Host "Compressing from $releaseDir..."
+          Compress-Archive -Path "$releaseDir\*" -DestinationPath "$env:GITHUB_WORKSPACE\Vaivart-windows-x64.zip" -Force
 
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
