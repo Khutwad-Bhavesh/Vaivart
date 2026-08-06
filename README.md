@@ -79,14 +79,20 @@ Pick your engine on first launch. Change anytime in Settings.
 
 ## Setup
 
-### Linux (Arch)
+### Linux (Arch / Manjaro / EndeavourOS)
 
+**Option A: Install via PKGBUILD (Recommended)**
 ```bash
-sudo pacman -S flutter ffmpeg libreoffice calibre libheif
+git clone https://github.com/Khutwad-Bhavesh/Vaivart.git
+cd Vaivart/packaging/arch
+makepkg -si
+```
 
+**Option B: Run from source**
+```bash
+sudo pacman -S flutter ffmpeg libreoffice-fresh calibre libheif
 git clone https://github.com/Khutwad-Bhavesh/Vaivart.git
 cd Vaivart
-
 flutter pub get
 flutter run -d linux
 ```

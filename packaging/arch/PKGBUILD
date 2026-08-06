@@ -1,0 +1,56 @@
+# Maintainer: Bhavesh Khutwad <https://github.com/Khutwad-Bhavesh/Vaivart>
+pkgname=vaivart-git
+_pkgname=vaivart
+pkgver=1.0.7
+pkgrel=1
+pkgdesc="Free, offline, open-source file converter optimized for low-end hardware"
+arch=('x86_64')
+url="https://github.com/Khutwad-Bhavesh/Vaivart"
+license=('custom:BSL-1.1')
+depends=('gtk3' 'ffmpeg' 'libreoffice-fresh' 'calibre')
+makedepends=('git' 'cmake' 'ninja' 'clang' 'pkgconf')
+provides=('vaivart')
+conflicts=('vaivart')
+source=("git+https://github.com/Khutwad-Bhavesh/Vaivart.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  echo "1.0.7"
+}
+
+build() {
+  cd "$srcdir/Vaivart"
+  flutter pub get
+  flutter build linux --release
+}
+
+package() {
+  cd "$srcdir/Vaivart"
+
+  # Install binary bundle files into /usr/lib/vaivart
+  install -dm755 "$pkgdir/usr/lib/$_pkgname"
+  cp -r build/linux/x64/release/bundle/* "$pkgdir/usr/lib/$_pkgname/"
+
+  # Create executable symlink in /usr/bin/vaivart
+  install -dm755 "$pkgdir/usr/bin"
+  ln -s "/usr/lib/$_pkgname/vaivart" "$pkgdir/usr/bin/vaivart"
+
+  # Install desktop launcher entry
+  install -dm755 "$pkgdir/usr/share/applications"
+  cat <<EOF > "$pkgdir/usr/share/applications/$_pkgname.desktop"
+[Desktop Entry]
+Name=Vaivart
+Comment=Free, offline file converter.
+Exec=/usr/bin/vaivart
+Icon=vaivart
+Terminal=false
+Type=Application
+Categories=Utility;FileTools;
+EOF
+
+  # Install icon
+  install -Dm644 assets/icons/icon_128.png "$pkgdir/usr/share/pixmaps/$_pkgname.png"
+
+  # Install license
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

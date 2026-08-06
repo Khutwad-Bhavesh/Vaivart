@@ -27,8 +27,8 @@ dist/
 *.deb
 *.dmg
 
-# Logs
-*.log
-
-# Test coverage
-coverage/
+# Arch build outputs
+packaging/arch/pkg/
+packaging/arch/src/
+packaging/arch/Vaivart/
+*.pkg.tar.zst
