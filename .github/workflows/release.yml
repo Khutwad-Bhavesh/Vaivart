@@ -109,8 +109,11 @@ jobs:
         shell: pwsh
         run: |
           Set-Location $env:GITHUB_WORKSPACE
-          $releaseDir = Get-ChildItem -Path build/windows -Recurse -Directory -Filter "Release" | Select-Object -ExpandProperty FullName -First 1
-          Write-Host "Compressing from $releaseDir..."
+          $releaseDir = Get-ChildItem -Path build/windows -Recurse -Directory | Where-Object { $_.FullName -like "*runner*Release" -or $_.FullName -like "*runner*Release*" } | Select-Object -ExpandProperty FullName -First 1
+          if (-not $releaseDir) {
+            $releaseDir = "build/windows/x64/runner/Release"
+          }
+          Write-Host "Compressing app release from: $releaseDir"
           Compress-Archive -Path "$releaseDir\*" -DestinationPath "$env:GITHUB_WORKSPACE\Vaivart-windows-x64.zip" -Force
 
       - name: Upload Windows Artifacts
