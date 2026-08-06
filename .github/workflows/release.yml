@@ -20,6 +20,9 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
+
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
@@ -93,6 +96,9 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
       - name: Fetch Flutter pub dependencies
         run: flutter pub get
 
@@ -100,8 +106,11 @@ jobs:
         run: flutter build windows --release
 
       - name: Package Windows Zip
+        shell: pwsh
         run: |
-          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath Vaivart-windows-x64.zip
+          $releaseDir = Get-ChildItem -Path build/windows -Recurse -Directory -Filter "Release" | Select-Object -ExpandProperty FullName -First 1
+          Write-Host "Found Windows Release dir: $releaseDir"
+          Compress-Archive -Path "$releaseDir\*" -DestinationPath "$env:GITHUB_WORKSPACE\Vaivart-windows-x64.zip"
 
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
@@ -119,6 +128,9 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
+
       - name: Fetch Flutter pub dependencies
         run: flutter pub get
 
@@ -127,14 +139,20 @@ jobs:
 
       - name: Package macOS App Zip
         run: |
-          cd build/macos/Build/Products/Release
-          zip -r Vaivart-macos.zip Vaivart.app
+          APP_PATH=$(find build/macos -name "Vaivart.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: Vaivart.app not found!"
+            exit 1
+          fi
+          APP_DIR=$(dirname "$APP_PATH")
+          cd "$APP_DIR"
+          zip -r "$GITHUB_WORKSPACE/Vaivart-macos.zip" "Vaivart.app"
 
       - name: Upload macOS Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-artifacts
-          path: build/macos/Build/Products/Release/Vaivart-macos.zip
+          path: Vaivart-macos.zip
 
   release:
     name: Create GitHub Release
