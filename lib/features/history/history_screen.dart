@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
 import '../../core/services/history_service.dart';
+import '../../core/engine/tool_resolver.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -58,7 +59,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   void _openFolder(String path) {
     final dir = File(path).parent.path;
-    Process.run('xdg-open', [dir]);
+    ToolResolver.openFolder(dir);
   }
 
   @override

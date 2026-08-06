@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'tool_resolver.dart';
 
 enum EngineType { lightweight, powerful, manual }
 
@@ -24,7 +25,7 @@ class EngineConfig {
   static bool supportsData(EngineType e) => true;
   static bool supportsPdf(EngineType e) => true;
 
-  // Video: desktop needs ffmpeg in PATH; Android uses ffmpeg_kit (powerful only)
+  // Video: desktop needs ffmpeg; Android uses ffmpeg_kit (powerful only)
   static bool supportsVideo(EngineType e) {
     if (isAndroid) return e == EngineType.powerful;
     return e == EngineType.powerful || e == EngineType.manual;
@@ -33,9 +34,28 @@ class EngineConfig {
   // Audio: same as video
   static bool supportsAudio(EngineType e) => supportsVideo(e);
 
-  // DOCX/PPTX/EPUB → PDF: needs LibreOffice/ebook-convert — desktop only
+  // DOCX/PPTX/EPUB → PDF: desktop only
   static bool supportsDesktopDocs(EngineType e) {
-    if (isAndroid) return false; // never on Android
+    if (isAndroid) return false;
     return e == EngineType.powerful || e == EngineType.manual;
+  }
+
+  // ── Dynamic tool availability checks ───────────────────────────
+  static Future<bool> hasFfmpeg() async {
+    if (isAndroid) return true;
+    final path = await ToolResolver.findExecutable('ffmpeg');
+    return path != null;
+  }
+
+  static Future<bool> hasLibreOffice() async {
+    if (isAndroid) return false;
+    final path = await ToolResolver.findExecutable('soffice');
+    return path != null;
+  }
+
+  static Future<bool> hasCalibre() async {
+    if (isAndroid) return false;
+    final path = await ToolResolver.findExecutable('ebook-convert');
+    return path != null;
   }
 }

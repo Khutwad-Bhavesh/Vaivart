@@ -3,6 +3,8 @@ import 'package:path/path.dart' as p;
 import 'package:ffmpeg_kit_flutter_audio/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_audio/return_code.dart';
 
+import '../engine/tool_resolver.dart';
+
 class VideoConverter {
   static Future<String> convert({
     required String sourcePath,
@@ -23,8 +25,12 @@ class VideoConverter {
         throw Exception('ffmpeg error: $logs');
       }
     } else {
-      // Desktop: ffmpeg in PATH
-      final result = await Process.run('ffmpeg', args);
+      // Desktop: ffmpeg resolved dynamically
+      final ffmpegPath = await ToolResolver.findExecutable('ffmpeg');
+      if (ffmpegPath == null) {
+        throw Exception('ffmpeg not found. Please install ffmpeg or check Settings.');
+      }
+      final result = await Process.run(ffmpegPath, args);
       if (result.exitCode != 0) {
         throw Exception('ffmpeg error: ${result.stderr}');
       }

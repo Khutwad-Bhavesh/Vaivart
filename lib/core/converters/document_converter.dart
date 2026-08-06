@@ -3,7 +3,29 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path/path.dart' as p;
 
+import '../engine/tool_resolver.dart';
+
 class DocumentConverter {
+  static Future<String> _getSoffice() async {
+    final path = await ToolResolver.findExecutable('soffice');
+    if (path == null) {
+      throw Exception(
+        'LibreOffice (soffice) not found. Please install LibreOffice or check your PATH in Settings.',
+      );
+    }
+    return path;
+  }
+
+  static Future<String> _getEbookConvert() async {
+    final path = await ToolResolver.findExecutable('ebook-convert');
+    if (path == null) {
+      throw Exception(
+        'Calibre (ebook-convert) not found. Please install Calibre or check your PATH in Settings.',
+      );
+    }
+    return path;
+  }
+
   static Future<String> txtToPdf({
     required String sourcePath,
     required String outputDir,
@@ -40,7 +62,8 @@ class DocumentConverter {
     required String sourcePath,
     required String outputDir,
   }) async {
-    final result = await Process.run('/usr/lib/libreoffice/program/soffice', [
+    final soffice = await _getSoffice();
+    final result = await Process.run(soffice, [
       '--headless',
       '--convert-to', 'pdf',
       '--outdir', outputDir,
@@ -83,56 +106,62 @@ class DocumentConverter {
       return 'Could not extract text from this PDF.';
     }
   }
+
   static Future<String> epubToPdf({
-  required String sourcePath,
-  required String outputDir,
-}) async {
-  final baseName = p.basenameWithoutExtension(sourcePath);
-  final outPath = p.join(outputDir, '$baseName.pdf');
+    required String sourcePath,
+    required String outputDir,
+  }) async {
+    final baseName = p.basenameWithoutExtension(sourcePath);
+    final outPath = p.join(outputDir, '$baseName.pdf');
+    final ebookConvert = await _getEbookConvert();
 
-  final result = await Process.run('ebook-convert', [
-    sourcePath,
-    outPath,
-  ]);
+    final result = await Process.run(ebookConvert, [
+      sourcePath,
+      outPath,
+    ]);
 
-  if (result.exitCode != 0) {
-    throw Exception('ebook-convert error: ${result.stderr}');
+    if (result.exitCode != 0) {
+      throw Exception('ebook-convert error: ${result.stderr}');
+    }
+
+    return outPath;
   }
 
-  return outPath;
-}
-static Future<String> pptxToPdf({
-  required String sourcePath,
-  required String outputDir,
-}) async {
-  final result = await Process.run('/usr/lib/libreoffice/program/soffice', [
-    '--headless',
-    '--convert-to', 'pdf',
-    '--outdir', outputDir,
-    sourcePath,
-  ]);
+  static Future<String> pptxToPdf({
+    required String sourcePath,
+    required String outputDir,
+  }) async {
+    final soffice = await _getSoffice();
+    final result = await Process.run(soffice, [
+      '--headless',
+      '--convert-to', 'pdf',
+      '--outdir', outputDir,
+      sourcePath,
+    ]);
 
-  if (result.exitCode != 0) {
-    throw Exception('LibreOffice error: ${result.stderr}');
+    if (result.exitCode != 0) {
+      throw Exception('LibreOffice error: ${result.stderr}');
+    }
+
+    final baseName = p.basenameWithoutExtension(sourcePath);
+    return p.join(outputDir, '$baseName.pdf');
   }
 
-  final baseName = p.basenameWithoutExtension(sourcePath);
-  return p.join(outputDir, '$baseName.pdf');
-}
-static Future<String> htmlToPdf({
-  required String sourcePath,
-  required String outputDir,
-}) async {
-  final result = await Process.run('/usr/lib/libreoffice/program/soffice', [
-    '--headless',
-    '--convert-to', 'pdf',
-    '--outdir', outputDir,
-    sourcePath,
-  ]);
+  static Future<String> htmlToPdf({
+    required String sourcePath,
+    required String outputDir,
+  }) async {
+    final soffice = await _getSoffice();
+    final result = await Process.run(soffice, [
+      '--headless',
+      '--convert-to', 'pdf',
+      '--outdir', outputDir,
+      sourcePath,
+    ]);
 
-  if (result.exitCode != 0) {
-    throw Exception('LibreOffice error: ${result.stderr}');
-  }
+    if (result.exitCode != 0) {
+      throw Exception('LibreOffice error: ${result.stderr}');
+    }
 
   final baseName = p.basenameWithoutExtension(sourcePath);
   return p.join(outputDir, '$baseName.pdf');

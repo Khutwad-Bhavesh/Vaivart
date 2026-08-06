@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 
+import '../engine/tool_resolver.dart';
+
 class ImageConverter {
   static Future<String> convert({
     required String sourcePath,
@@ -41,8 +43,12 @@ class ImageConverter {
   }) async {
     final baseName = p.basenameWithoutExtension(sourcePath);
     final outPath = p.join(outputDir, '$baseName.${targetFormat.toLowerCase()}');
+    final binPath = await ToolResolver.findExecutable('heif-convert');
+    if (binPath == null) {
+      throw Exception('heif-convert not found. Please install libheif tools or convert on Powerful mode.');
+    }
 
-    final result = await Process.run('heif-convert', [
+    final result = await Process.run(binPath, [
       sourcePath,
       outPath,
     ]);
@@ -53,24 +59,29 @@ class ImageConverter {
 
     return outPath;
   }
-static Future<String> svgToImage({
-  required String sourcePath,
-  required String targetFormat,
-  required String outputDir,
-}) async {
-  final baseName = p.basenameWithoutExtension(sourcePath);
-  final outPath = p.join(outputDir, '$baseName.${targetFormat.toLowerCase()}');
 
-  final result = await Process.run('rsvg-convert', [
-    '-f', targetFormat.toLowerCase(),
-    '-o', outPath,
-    sourcePath,
-  ]);
+  static Future<String> svgToImage({
+    required String sourcePath,
+    required String targetFormat,
+    required String outputDir,
+  }) async {
+    final baseName = p.basenameWithoutExtension(sourcePath);
+    final outPath = p.join(outputDir, '$baseName.${targetFormat.toLowerCase()}');
+    final binPath = await ToolResolver.findExecutable('rsvg-convert');
+    if (binPath == null) {
+      throw Exception('rsvg-convert not found. Please install librsvg or check your PATH.');
+    }
 
-  if (result.exitCode != 0) {
-    throw Exception('rsvg-convert error: ${result.stderr}');
+    final result = await Process.run(binPath, [
+      '-f', targetFormat.toLowerCase(),
+      '-o', outPath,
+      sourcePath,
+    ]);
+
+    if (result.exitCode != 0) {
+      throw Exception('rsvg-convert error: ${result.stderr}');
+    }
+
+    return outPath;
   }
-
-  return outPath;
-}
 }
