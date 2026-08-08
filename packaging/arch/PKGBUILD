@@ -1,7 +1,7 @@
 # Maintainer: Bhavesh Khutwad <https://github.com/Khutwad-Bhavesh/Vaivart>
 pkgname=vaivart-git
 _pkgname=vaivart
-pkgver=1.0.7
+pkgver=1.0.10
 pkgrel=1
 pkgdesc="Free, offline, open-source file converter optimized for low-end hardware"
 arch=('x86_64')
@@ -15,7 +15,7 @@ source=("git+https://github.com/Khutwad-Bhavesh/Vaivart.git")
 sha256sums=('SKIP')
 
 pkgver() {
-  echo "1.0.7"
+  echo "1.0.10"
 }
 
 build() {
