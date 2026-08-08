@@ -44,32 +44,65 @@ class ConversionJob {
 
 List<String> get availableFormats {
   switch (extension.toLowerCase()) {
+    // ── Images ──
     case 'jpg':
-    case 'jpeg': return ['PNG', 'WEBP', 'BMP', 'PDF'];
-    case 'png': return ['JPG', 'WEBP', 'BMP', 'PDF'];
-    case 'webp': return ['JPG', 'PNG', 'BMP'];
-    case 'bmp': return ['JPG', 'PNG', 'WEBP'];
+    case 'jpeg': return ['PNG', 'WEBP', 'BMP', 'TIFF', 'GIF', 'PDF'];
+    case 'png': return ['JPG', 'WEBP', 'BMP', 'TIFF', 'GIF', 'PDF'];
+    case 'webp': return ['JPG', 'PNG', 'BMP', 'TIFF', 'PDF'];
+    case 'bmp': return ['JPG', 'PNG', 'WEBP', 'TIFF', 'PDF'];
+    case 'tiff':
+    case 'tif': return ['JPG', 'PNG', 'WEBP', 'BMP', 'PDF'];
+    case 'gif': return ['JPG', 'PNG', 'WEBP', 'BMP', 'TIFF'];
+    case 'ico': return ['PNG', 'JPG', 'BMP'];
+    case 'heic': return ['JPG', 'PNG', 'WEBP', 'BMP'];
+    case 'svg': return ['PNG', 'JPG', 'PDF'];
+
+    // ── Video ──
+    case 'mp4': return ['AVI', 'MKV', 'WEBM', 'MOV', 'FLV', 'WMV', '3GP', 'GIF', 'MP3'];
+    case 'avi': return ['MP4', 'MKV', 'WEBM', 'MOV', 'FLV', 'WMV', '3GP', 'GIF', 'MP3'];
+    case 'mkv': return ['MP4', 'AVI', 'WEBM', 'MOV', 'FLV', 'WMV', '3GP', 'GIF', 'MP3'];
+    case 'mov': return ['MP4', 'AVI', 'MKV', 'WEBM', 'FLV', 'WMV', '3GP', 'GIF', 'MP3'];
+    case 'webm': return ['MP4', 'AVI', 'MKV', 'MOV', 'FLV', 'WMV', '3GP', 'GIF', 'MP3'];
+    case 'flv': return ['MP4', 'AVI', 'MKV', 'WEBM', 'MOV', 'WMV', '3GP', 'GIF', 'MP3'];
+    case 'wmv': return ['MP4', 'AVI', 'MKV', 'WEBM', 'MOV', 'FLV', '3GP', 'GIF', 'MP3'];
+    case '3gp': return ['MP4', 'AVI', 'MKV', 'WEBM', 'MOV', 'FLV', 'WMV', 'GIF', 'MP3'];
+
+    // ── Audio ──
+    case 'mp3': return ['WAV', 'OGG', 'FLAC', 'AAC', 'M4A', 'WMA', 'AIFF'];
+    case 'wav': return ['MP3', 'OGG', 'FLAC', 'AAC', 'M4A', 'WMA', 'AIFF'];
+    case 'ogg': return ['MP3', 'WAV', 'FLAC', 'AAC', 'M4A', 'WMA', 'AIFF'];
+    case 'flac': return ['MP3', 'WAV', 'OGG', 'AAC', 'M4A', 'WMA', 'AIFF'];
+    case 'aac': return ['MP3', 'WAV', 'OGG', 'FLAC', 'M4A', 'WMA', 'AIFF'];
+    case 'm4a': return ['MP3', 'WAV', 'OGG', 'FLAC', 'AAC', 'WMA', 'AIFF'];
+    case 'wma': return ['MP3', 'WAV', 'OGG', 'FLAC', 'AAC', 'M4A', 'AIFF'];
+    case 'aiff': return ['MP3', 'WAV', 'OGG', 'FLAC', 'AAC', 'M4A', 'WMA'];
+
+    // ── Documents ──
     case 'pdf': return ['DOCX', 'PNG', 'JPG'];
     case 'docx': case 'doc': return ['PDF'];
     case 'txt': return ['PDF'];
-    case 'csv': return ['XLSX'];
-    case 'xlsx': return ['CSV'];
-    case 'mp4': return ['AVI', 'MKV', 'GIF'];
-    case 'avi': return ['MP4', 'MKV', 'GIF'];
-    case 'mkv': return ['MP4', 'AVI', 'GIF'];
-    case 'mov': return ['MP4', 'AVI', 'MKV', 'GIF'];
-    case 'svg': return ['PNG', 'JPG', 'PDF'];
-    case 'epub': return ['PDF'];
-    case 'mp3': return ['WAV', 'OGG'];
-    case 'wav': return ['MP3', 'OGG'];
-    case 'ogg': return ['MP3', 'WAV'];
-    case 'webm': return ['MP4', 'GIF', 'AVI', 'MKV'];
-    case 'pptx':
-    case 'ppt': return ['PDF'];
-    case 'html':
-    case 'htm': return ['PDF'];
     case 'md':
     case 'markdown': return ['PDF'];
+    case 'html':
+    case 'htm': return ['PDF'];
+    case 'rtf': return ['PDF'];
+    case 'odt': return ['PDF'];
+    case 'odp': return ['PDF'];
+    case 'pptx':
+    case 'ppt': return ['PDF'];
+    case 'epub': return ['PDF'];
+    case 'xml': return ['PDF'];
+    case 'json': return ['PDF', 'CSV'];
+    case 'yaml':
+    case 'yml': return ['PDF'];
+    case 'log': return ['PDF'];
+
+    // ── Data ──
+    case 'csv': return ['XLSX', 'JSON', 'TSV', 'PDF'];
+    case 'xlsx': return ['CSV', 'JSON'];
+    case 'tsv': return ['CSV'];
+    case 'ods': return ['CSV', 'XLSX'];
+
     default: return [];
   }
 }

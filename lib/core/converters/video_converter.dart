@@ -59,8 +59,48 @@ class VideoConverter {
           '-loop', '0',
           outPath,
         ];
+      case 'WEBM':
+        return [...base, '-c:v', 'libvpx-vp9', '-c:a', 'libopus', '-b:v', '2M', outPath];
+      case 'MOV':
+        return [...base, '-c:v', 'libx264', '-c:a', 'aac', outPath];
+      case 'FLV':
+        return [...base, '-c:v', 'libx264', '-c:a', 'aac', '-f', 'flv', outPath];
+      case 'WMV':
+        return [...base, '-c:v', 'wmv2', '-c:a', 'wmav2', outPath];
+      case '3GP':
+        return [...base, '-c:v', 'h263', '-c:a', 'aac', '-s', '352x288', outPath];
       default:
         return [...base, outPath];
     }
+  }
+  static Future<String> extractAudio({
+    required String sourcePath,
+    required String targetFormat,
+    required String outputDir,
+  }) async {
+    final baseName = p.basenameWithoutExtension(sourcePath);
+    final outPath = p.join(outputDir, '$baseName.${targetFormat.toLowerCase()}');
+    final args = ['-i', sourcePath, '-y', '-vn', '-codec:a', 'copy', outPath];
+
+    if (Platform.isAndroid) {
+      final cmd = args.join(' ');
+      final session = await FFmpegKit.execute(cmd);
+      final rc = await session.getReturnCode();
+      if (!ReturnCode.isSuccess(rc)) {
+        final logs = await session.getLogsAsString();
+        throw Exception('ffmpeg extract audio error: $logs');
+      }
+    } else {
+      final ffmpegPath = await ToolResolver.findExecutable('ffmpeg');
+      if (ffmpegPath == null) {
+        throw Exception('ffmpeg not found. Please install ffmpeg or check Settings.');
+      }
+      final result = await Process.run(ffmpegPath, args);
+      if (result.exitCode != 0) {
+        throw Exception('ffmpeg extract audio error: ${result.stderr}');
+      }
+    }
+
+    return outPath;
   }
 }

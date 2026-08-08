@@ -50,6 +50,16 @@ class AudioConverter {
         return [...base, '-codec:a', 'pcm_s16le', outPath];
       case 'OGG':
         return [...base, '-codec:a', 'libvorbis', '-q:a', '4', outPath];
+      case 'FLAC':
+        return [...base, '-codec:a', 'flac', outPath];
+      case 'AAC':
+        return [...base, '-codec:a', 'aac', '-b:a', '192k', outPath];
+      case 'M4A':
+        return [...base, '-codec:a', 'aac', '-b:a', '192k', outPath];
+      case 'WMA':
+        return [...base, '-codec:a', 'wmav2', '-b:a', '192k', outPath];
+      case 'AIFF':
+        return [...base, '-codec:a', 'pcm_s16be', outPath];
       default:
         return [...base, outPath];
     }

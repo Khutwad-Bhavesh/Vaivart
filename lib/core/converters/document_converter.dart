@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path/path.dart' as p;
@@ -430,5 +431,110 @@ class DocumentConverter {
     final finalPath = p.join(outputDir, '$baseName.pdf');
     await File(result).rename(finalPath);
     return finalPath;
+  }
+
+  static Future<String> rtfToPdf({
+    required String sourcePath,
+    required String outputDir,
+  }) async {
+    final soffice = await _getSoffice();
+    final result = await Process.run(soffice, [
+      '--headless',
+      '--convert-to', 'pdf',
+      '--outdir', outputDir,
+      sourcePath,
+    ]);
+
+    if (result.exitCode != 0) {
+      throw Exception('LibreOffice error: ${result.stderr}');
+    }
+
+    final baseName = p.basenameWithoutExtension(sourcePath);
+    return p.join(outputDir, '$baseName.pdf');
+  }
+
+  static Future<String> odtToPdf({
+    required String sourcePath,
+    required String outputDir,
+  }) async {
+    final soffice = await _getSoffice();
+    final result = await Process.run(soffice, [
+      '--headless',
+      '--convert-to', 'pdf',
+      '--outdir', outputDir,
+      sourcePath,
+    ]);
+
+    if (result.exitCode != 0) {
+      throw Exception('LibreOffice error: ${result.stderr}');
+    }
+
+    final baseName = p.basenameWithoutExtension(sourcePath);
+    return p.join(outputDir, '$baseName.pdf');
+  }
+
+  static Future<String> odpToPdf({
+    required String sourcePath,
+    required String outputDir,
+  }) async {
+    final soffice = await _getSoffice();
+    final result = await Process.run(soffice, [
+      '--headless',
+      '--convert-to', 'pdf',
+      '--outdir', outputDir,
+      sourcePath,
+    ]);
+
+    if (result.exitCode != 0) {
+      throw Exception('LibreOffice error: ${result.stderr}');
+    }
+
+    final baseName = p.basenameWithoutExtension(sourcePath);
+    return p.join(outputDir, '$baseName.pdf');
+  }
+
+  static Future<String> jsonToPdf({
+    required String sourcePath,
+    required String outputDir,
+  }) async {
+    final raw = await File(sourcePath).readAsString();
+    String prettyJson;
+    try {
+      final decoded = jsonDecode(raw);
+      prettyJson = const JsonEncoder.withIndent('  ').convert(decoded);
+    } catch (_) {
+      prettyJson = raw;
+    }
+
+    final tempTxt = File('${sourcePath}_temp.txt');
+    await tempTxt.writeAsString(prettyJson);
+    final result = await txtToPdf(sourcePath: tempTxt.path, outputDir: outputDir);
+    await tempTxt.delete();
+
+    final baseName = p.basenameWithoutExtension(sourcePath);
+    final finalPath = p.join(outputDir, '$baseName.pdf');
+    if (result != finalPath) await File(result).rename(finalPath);
+    return finalPath;
+  }
+
+  static Future<String> xmlToPdf({
+    required String sourcePath,
+    required String outputDir,
+  }) async {
+    return txtToPdf(sourcePath: sourcePath, outputDir: outputDir);
+  }
+
+  static Future<String> yamlToPdf({
+    required String sourcePath,
+    required String outputDir,
+  }) async {
+    return txtToPdf(sourcePath: sourcePath, outputDir: outputDir);
+  }
+
+  static Future<String> logToPdf({
+    required String sourcePath,
+    required String outputDir,
+  }) async {
+    return txtToPdf(sourcePath: sourcePath, outputDir: outputDir);
   }
 }

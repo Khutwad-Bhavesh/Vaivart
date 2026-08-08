@@ -28,6 +28,11 @@ class ImageConverter {
         encoded = img.encodeJpg(decoded, quality: 95);
       case 'BMP':
         encoded = img.encodeBmp(decoded);
+      case 'TIFF':
+      case 'TIF':
+        encoded = img.encodeTiff(decoded);
+      case 'GIF':
+        encoded = img.encodeGif(decoded);
       default:
         throw Exception('Unsupported format: $targetFormat');
     }
