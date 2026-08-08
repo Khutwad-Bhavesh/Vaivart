@@ -13,10 +13,10 @@ import '../models/conversion_job.dart';
 
 class ConverterDispatcher {
   // ── Format sets ────────────────────────────────────────────────
-  static const _videoFormats = {'mp4', 'avi', 'mkv', 'mov', 'webm', 'flv', 'wmv', '3gp'};
-  static const _audioFormats = {'mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma', 'aiff'};
-  static const _imageFormats = {'jpg', 'jpeg', 'png', 'webp', 'bmp', 'tiff', 'tif', 'gif', 'ico', 'heic'};
-  static const _audioTargets = {'MP3', 'WAV', 'OGG', 'FLAC', 'AAC', 'M4A', 'WMA', 'AIFF'};
+  static const _videoFormats = {'mp4', 'avi', 'mkv', 'mov', 'webm', 'flv', 'wmv', '3gp', 'vob', 'mts', 'm2ts', 'ts', 'divx', 'asf'};
+  static const _audioFormats = {'mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma', 'aiff', 'opus', 'amr', 'ac3', 'au', 'snd', 'dts', 'ra', 'ram'};
+  static const _imageFormats = {'jpg', 'jpeg', 'png', 'webp', 'bmp', 'tiff', 'tif', 'gif', 'ico', 'heic', 'tga', 'psd', 'pnm', 'pbm', 'pgm', 'ppm', 'exr', 'pvr', 'cur'};
+  static const _audioTargets = {'MP3', 'WAV', 'OGG', 'FLAC', 'AAC', 'M4A', 'WMA', 'AIFF', 'OPUS', 'AMR', 'AC3', 'AU', 'DTS', 'RA'};
 
   static Future<String> run(ConversionJob job) async {
     final outputDir = await OutputService.getOutputDir();
@@ -320,6 +320,53 @@ class ConverterDispatcher {
         sourcePath: job.sourcePath,
         outputDir: outputDir,
       );
+    }
+
+    // ── Legacy Documents (LibreOffice/Calibre) ────────────────────
+    else if (ext == 'ps') {
+      if (!EngineConfig.supportsDesktopDocs(engine)) {
+        throw Exception(
+          Platform.isAndroid
+              ? 'PS → PDF is not supported on Android.\nUse the desktop app for this conversion.'
+              : 'PS → PDF requires Powerful or Manual engine.\nChange engine in Settings.',
+        );
+      }
+      final soffice = await _findSoffice();
+      final result = await Process.run(soffice, [
+        '--headless', '--convert-to', 'pdf', '--outdir', outputDir, job.sourcePath,
+      ]);
+      if (result.exitCode != 0) throw Exception('LibreOffice error: ${result.stderr}');
+      final baseName = job.fileName.split('.').first;
+      outPath = '$outputDir/$baseName.pdf';
+    } else if (ext == 'xps' || ext == 'oxps') {
+      if (!EngineConfig.supportsDesktopDocs(engine)) {
+        throw Exception(
+          Platform.isAndroid
+              ? 'XPS → PDF is not supported on Android.\nUse the desktop app for this conversion.'
+              : 'XPS → PDF requires Powerful or Manual engine.\nChange engine in Settings.',
+        );
+      }
+      final soffice = await _findSoffice();
+      final result = await Process.run(soffice, [
+        '--headless', '--convert-to', 'pdf', '--outdir', outputDir, job.sourcePath,
+      ]);
+      if (result.exitCode != 0) throw Exception('LibreOffice error: ${result.stderr}');
+      final baseName = job.fileName.split('.').first;
+      outPath = '$outputDir/$baseName.pdf';
+    } else if (ext == 'djvu' || ext == 'djv') {
+      if (Platform.isAndroid) {
+        throw Exception('DjVu → PDF is not supported on Android.\nUse the desktop app for this conversion.');
+      }
+      final ddjvu = await ToolResolver.findExecutable('ddjvu');
+      if (ddjvu == null) {
+        throw Exception('ddjvu not found. Please install DjVuLibre or check your PATH in Settings.');
+      }
+      final baseName = job.fileName.split('.').first;
+      outPath = '$outputDir/$baseName.pdf';
+      final result = await Process.run(ddjvu, [
+        '-format=pdf', job.sourcePath, outPath,
+      ]);
+      if (result.exitCode != 0) throw Exception('ddjvu error: ${result.stderr}');
     } else if (ext == 'pdf' && target == 'DOCX') {
       if (Platform.isAndroid) {
         throw Exception('PDF → DOCX is not supported on Android.\nUse the desktop app for this conversion.');

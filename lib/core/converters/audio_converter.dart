@@ -60,6 +60,18 @@ class AudioConverter {
         return [...base, '-codec:a', 'wmav2', '-b:a', '192k', outPath];
       case 'AIFF':
         return [...base, '-codec:a', 'pcm_s16be', outPath];
+      case 'OPUS':
+        return [...base, '-codec:a', 'libopus', '-b:a', '128k', outPath];
+      case 'AMR':
+        return [...base, '-codec:a', 'libopencore_amrnb', '-ar', '8000', '-ac', '1', outPath];
+      case 'AC3':
+        return [...base, '-codec:a', 'ac3', '-b:a', '192k', outPath];
+      case 'AU':
+        return [...base, '-codec:a', 'pcm_s16be', '-f', 'au', outPath];
+      case 'DTS':
+        return [...base, '-codec:a', 'dca', '-b:a', '768k', outPath];
+      case 'RA':
+        return [...base, '-codec:a', 'real_144', '-f', 'rm', outPath];
       default:
         return [...base, outPath];
     }

@@ -33,6 +33,14 @@ class ImageConverter {
         encoded = img.encodeTiff(decoded);
       case 'GIF':
         encoded = img.encodeGif(decoded);
+      case 'TGA':
+        encoded = img.encodeTga(decoded);
+      case 'ICO':
+        encoded = img.encodeIco(decoded);
+      case 'CUR':
+        encoded = img.encodeCur(decoded);
+      case 'PVR':
+        encoded = img.encodePvr(decoded);
       default:
         throw Exception('Unsupported format: $targetFormat');
     }

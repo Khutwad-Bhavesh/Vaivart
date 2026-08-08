@@ -69,6 +69,15 @@ class VideoConverter {
         return [...base, '-c:v', 'wmv2', '-c:a', 'wmav2', outPath];
       case '3GP':
         return [...base, '-c:v', 'h263', '-c:a', 'aac', '-s', '352x288', outPath];
+      case 'VOB':
+        return [...base, '-c:v', 'mpeg2video', '-c:a', 'mp2', '-f', 'vob', outPath];
+      case 'MTS':
+      case 'M2TS':
+        return [...base, '-c:v', 'libx264', '-c:a', 'aac', '-f', 'mpegts', outPath];
+      case 'TS':
+        return [...base, '-c:v', 'libx264', '-c:a', 'aac', '-f', 'mpegts', outPath];
+      case 'ASF':
+        return [...base, '-c:v', 'wmv2', '-c:a', 'wmav2', '-f', 'asf', outPath];
       default:
         return [...base, outPath];
     }
