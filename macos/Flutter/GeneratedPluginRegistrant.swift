@@ -5,7 +5,7 @@
 import FlutterMacOS
 import Foundation
 
-import ffmpeg_kit_flutter_audio
+import ffmpeg_kit_flutter_new
 import file_picker
 import printing
 import shared_preferences_foundation

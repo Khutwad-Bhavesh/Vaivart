@@ -142,7 +142,9 @@ class PdfToolsConverter {
         final bounds = trimmed.split('-');
         final start = int.tryParse(bounds[0].trim()) ?? 1;
         final end = int.tryParse(bounds[1].trim()) ?? start;
-        for (int i = start; i <= end; i++) pages.add(i);
+        for (int i = start; i <= end; i++) {
+          pages.add(i);
+        }
       } else {
         final page = int.tryParse(trimmed);
         if (page != null) pages.add(page);

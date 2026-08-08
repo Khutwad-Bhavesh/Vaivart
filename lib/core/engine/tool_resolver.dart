@@ -190,3 +190,10 @@ class ToolResolver {
     _cache.clear();
   }
 }
+
+extension ToolStatusListExtension on List<ToolStatus> {
+  bool get hasFfmpeg => any((t) => t.name == 'ffmpeg' && t.isInstalled);
+  bool get hasLibreOffice => any((t) => (t.name == 'libreoffice' || t.name == 'soffice') && t.isInstalled);
+  bool get hasAnyConverter => any((t) => t.isInstalled);
+  List<ToolStatus> get installedTools => where((t) => t.isInstalled).toList();
+}

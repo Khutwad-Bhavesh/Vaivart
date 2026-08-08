@@ -18,7 +18,7 @@ class _PdfMergeScreenState extends State<PdfMergeScreen> {
   String? _result;
 
   Future<void> _pickFiles() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       allowMultiple: true,
       type: FileType.custom,
       allowedExtensions: ['pdf'],

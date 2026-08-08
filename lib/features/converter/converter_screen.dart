@@ -33,7 +33,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
   }
 
   Future<void> _pickFiles() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       allowMultiple: true,
       type: FileType.any,
     );
@@ -46,7 +46,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
   }
 
   Future<void> _pickOutputDir() async {
-    final result = await FilePicker.platform.getDirectoryPath();
+    final result = await FilePicker.getDirectoryPath();
     if (result == null) return;
     await OutputService.setOutputDir(result);
     setState(() => _outputDir = result);
@@ -70,8 +70,8 @@ class _ConverterScreenState extends State<ConverterScreen> {
         });
         await Future.delayed(const Duration(milliseconds: 100));
       } catch (e) {
-  print('Conversion error: $e');
-  setState(() => _queue[i] = _queue[i].copyWith(status: JobStatus.failed));
+        debugPrint('Conversion error: $e');
+        setState(() => _queue[i] = _queue[i].copyWith(status: JobStatus.failed));
   if (e.toString().contains('engine')) {
     _showEngineError(e.toString().replaceAll('Exception: ', ''));
   }

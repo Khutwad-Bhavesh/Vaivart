@@ -68,7 +68,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
     final bg = isDark ? AppColors.darkBgSecondary : AppColors.lightBgSecondary;
     final textPrimary = isDark ? AppColors.darkText : AppColors.lightText;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final textTertiary = isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary;
 
     return Padding(
@@ -130,7 +129,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: AppColors.teal.withOpacity(0.1),
+                                    color: AppColors.teal.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
