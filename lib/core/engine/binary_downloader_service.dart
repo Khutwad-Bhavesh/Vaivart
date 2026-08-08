@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:archive/archive_io.dart';
+import 'package:crypto/crypto.dart';
 import 'tool_resolver.dart';
 
 class DownloadToolInfo {
@@ -9,6 +10,7 @@ class DownloadToolInfo {
   final String archiveType; // 'zip', 'tar.xz', 'binary'
   final String binaryFileName;
   final String fileSizeMB;
+  final String? expectedSha256;
 
   const DownloadToolInfo({
     required this.toolName,
@@ -16,6 +18,7 @@ class DownloadToolInfo {
     required this.archiveType,
     required this.binaryFileName,
     required this.fileSizeMB,
+    this.expectedSha256,
   });
 }
 
@@ -27,18 +30,20 @@ class BinaryDownloaderService {
       if (Platform.isLinux) {
         return const DownloadToolInfo(
           toolName: 'ffmpeg',
-          url: 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz',
+          url: 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-08-31-13-00/ffmpeg-n6.1.3-linux64-gpl-6.1.tar.xz',
           archiveType: 'tar.xz',
           binaryFileName: 'ffmpeg',
-          fileSizeMB: '~38MB',
+          fileSizeMB: '~100MB',
+          expectedSha256: '400f9ca9d8ea3f812660cf7a00b9bfed944175cd9d6bd0c9b6257cf99376a75c',
         );
       } else if (Platform.isWindows) {
         return const DownloadToolInfo(
           toolName: 'ffmpeg',
-          url: 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n6.1-latest-win64-gpl-6.1.zip',
+          url: 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-08-31-13-00/ffmpeg-n6.1.3-win64-gpl-6.1.zip',
           archiveType: 'zip',
           binaryFileName: 'ffmpeg.exe',
-          fileSizeMB: '~30MB',
+          fileSizeMB: '~130MB',
+          expectedSha256: '7142408984a0b63de725e885632af4d80e7824c0d86161577fd227641a6749dc',
         );
       } else if (Platform.isMacOS) {
         return const DownloadToolInfo(
@@ -47,6 +52,7 @@ class BinaryDownloaderService {
           archiveType: 'zip',
           binaryFileName: 'ffmpeg',
           fileSizeMB: '~25MB',
+          expectedSha256: '7de74c26a20dd172ed49c7de6035ee0790c83e69e461c3a6895b33ae0787e513',
         );
       }
     }
@@ -107,7 +113,21 @@ class BinaryDownloaderService {
       await sink.flush();
       await sink.close();
 
-      onProgress(0.85, 'Extracting and installing ${info.toolName}...');
+      onProgress(0.85, 'Validating download...');
+
+      if (info.expectedSha256 != null) {
+        final hashStream = tempFile.openRead();
+        final digest = await sha256.bind(hashStream).first;
+        final actualSha256 = digest.toString();
+        if (actualSha256 != info.expectedSha256) {
+          if (await tempFile.exists()) {
+            await tempFile.delete();
+          }
+          throw Exception('Security Error: Checksum mismatch. The downloaded file may be corrupted.\nExpected: ${info.expectedSha256}\nGot: $actualSha256');
+        }
+      }
+
+      onProgress(0.90, 'Extracting and installing ${info.toolName}...');
 
       final installedFile = await _extractAndInstall(
         archiveFile: tempFile,
