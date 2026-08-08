@@ -1,5 +1,5 @@
+import 'dart:convert';
 import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'tool_resolver.dart';
 
 enum EngineType { lightweight, powerful, manual }
@@ -9,13 +9,46 @@ class EngineConfig {
   static bool get isDesktop =>
       Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
+  static EngineType? _cachedEngine;
+
   static Future<EngineType> getEngine() async {
-    final prefs = await SharedPreferences.getInstance();
-    final val = prefs.getInt('engine') ?? 0;
-    // On Android, manual falls back to lightweight (no shell tools)
-    final engine = EngineType.values[val];
-    if (isAndroid && engine == EngineType.manual) return EngineType.lightweight;
-    return engine;
+    if (_cachedEngine != null) return _cachedEngine!;
+    final configFile = _getConfigFile();
+    if (configFile.existsSync()) {
+      try {
+        final content = jsonDecode(configFile.readAsStringSync());
+        if (content is Map && content.containsKey('engine')) {
+          final val = content['engine'] as int;
+          if (val >= 0 && val < EngineType.values.length) {
+            _cachedEngine = EngineType.values[val];
+            return _cachedEngine!;
+          }
+        }
+      } catch (_) {}
+    }
+    _cachedEngine = EngineType.powerful;
+    return _cachedEngine!;
+  }
+
+  static Future<void> setEngine(EngineType engine) async {
+    _cachedEngine = engine;
+    try {
+      final configFile = _getConfigFile();
+      Map<String, dynamic> data = {};
+      if (configFile.existsSync()) {
+        try {
+          data = Map<String, dynamic>.from(jsonDecode(configFile.readAsStringSync()));
+        } catch (_) {}
+      }
+      data['engine'] = engine.index;
+      configFile.parent.createSync(recursive: true);
+      configFile.writeAsStringSync(jsonEncode(data));
+    } catch (_) {}
+  }
+
+  static File _getConfigFile() {
+    final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.';
+    return File('$home/.config/vaivart/config.json');
   }
 
   // ── Feature support matrix ──────────────────────────────────────

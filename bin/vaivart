@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Vaivart Terminal UI & CLI Runner
+exec dart run bin/vaivart_tui.dart "$@"
