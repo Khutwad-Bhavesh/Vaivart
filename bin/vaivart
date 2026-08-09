@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
-# Vaivart Terminal UI & CLI Runner
-exec dart run bin/vaivart_tui.dart "$@"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+PROJECT_DIR="$( dirname "$SCRIPT_DIR" )"
+exec dart run "$PROJECT_DIR/bin/vaivart_tui.dart" "$@"
