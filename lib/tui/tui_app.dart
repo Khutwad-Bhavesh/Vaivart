@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:vaivart/core/converters/converter_dispatcher.dart';
@@ -241,22 +242,55 @@ class TuiApp {
     _promptPressEnter();
   }
 
-  /// Execute single conversion job
+  /// Execute single conversion job with real-time animated progress bar
   Future<bool> _executeJob(String sourcePath, String targetFormat) async {
     final startTime = DateTime.now();
     final fileName = p.basename(sourcePath);
     final ext = p.extension(sourcePath).replaceAll('.', '');
 
     stdout.writeln('\n${TuiAnsi.statusBadge("CONVERTING...", warning: true)} $fileName → $targetFormat');
-    stdout.write('${TuiAnsi.progressBar(0.3)} Initializing engine dispatcher...\r');
+
+    // Progress animation state
+    double progress = 0.05;
+    final spinnerFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+    int frameIdx = 0;
+    bool done = false;
+
+    // Start background animation ticker at 60ms interval
+    final timer = Timer.periodic(const Duration(milliseconds: 60), (t) {
+      if (done) return;
+      if (progress < 0.92) {
+        progress += (0.92 - progress) * 0.04 + 0.004;
+      }
+      final spinner = spinnerFrames[frameIdx % spinnerFrames.length];
+      frameIdx++;
+
+      final elapsedMs = DateTime.now().difference(startTime).inMilliseconds;
+      final elapsedSec = (elapsedMs / 1000).toStringAsFixed(1);
+      final phase = progress < 0.25
+          ? 'Preparing conversion...'
+          : progress < 0.60
+              ? 'Processing data stream...'
+              : progress < 0.85
+                  ? 'Applying transformation...'
+                  : 'Finalizing output...';
+
+      // \x1B[2K clears entire line, \r resets cursor position
+      stdout.write('\x1B[2K\r${TuiAnsi.progressBar(progress)} $spinner ${TuiAnsi.cyan}$phase${TuiAnsi.reset} ${TuiAnsi.dim}(${elapsedSec}s)${TuiAnsi.reset}');
+    });
 
     try {
       final job = ConversionJob.fromFile(sourcePath).copyWith(targetFormat: targetFormat);
-
-      stdout.write('${TuiAnsi.progressBar(0.6)} Processing conversion...\r');
       final outPath = await ConverterDispatcher.run(job);
 
-      stdout.writeln('\n${TuiAnsi.statusBadge("SUCCESS")} Output saved to:');
+      done = true;
+      timer.cancel();
+
+      final elapsedMs = DateTime.now().difference(startTime).inMilliseconds;
+      final elapsedSec = (elapsedMs / 1000).toStringAsFixed(2);
+
+      stdout.writeln('\x1B[2K\r${TuiAnsi.progressBar(1.0)} ${TuiAnsi.emerald}✔ Finished${TuiAnsi.reset} ${TuiAnsi.dim}(${elapsedSec}s)${TuiAnsi.reset}');
+      stdout.writeln('${TuiAnsi.statusBadge("SUCCESS")} Output saved to:');
       stdout.writeln('  ${TuiAnsi.bold}${TuiAnsi.skyBlue}$outPath${TuiAnsi.reset}');
 
       await HistoryService.addEntry(
@@ -271,6 +305,10 @@ class TuiApp {
       );
       return true;
     } catch (e) {
+      done = true;
+      timer.cancel();
+
+      stdout.writeln('\x1B[2K\r${TuiAnsi.progressBar(progress)} ${TuiAnsi.coralRed}✖ Failed${TuiAnsi.reset}');
       stdout.writeln('\n${TuiAnsi.statusBadge("FAILED", success: false)} Error: $e');
 
       await HistoryService.addEntry(
