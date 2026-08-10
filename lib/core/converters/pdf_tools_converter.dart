@@ -1,6 +1,5 @@
 import 'dart:io';
-import 'dart:ui';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'pdf_tools_helper.dart';
 import 'package:path/path.dart' as p;
 
 class PdfToolsConverter {

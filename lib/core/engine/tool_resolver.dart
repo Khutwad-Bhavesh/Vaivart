@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 class ToolStatus {
   final String name;
@@ -21,8 +20,8 @@ class ToolResolver {
 
   /// Get the app's dedicated local binary storage directory (~/.local/share/vaivart/bin or LocalAppData/vaivart/bin)
   static Future<Directory> getAppBinDir() async {
-    final appSupport = await getApplicationSupportDirectory();
-    final binDir = Directory(p.join(appSupport.path, 'bin'));
+    final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.';
+    final binDir = Directory(p.join(home, '.local', 'share', 'vaivart', 'bin'));
     if (!await binDir.exists()) {
       await binDir.create(recursive: true);
     }

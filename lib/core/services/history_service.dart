@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 class HistoryEntry {
   final String fileName;
@@ -38,28 +38,44 @@ class HistoryEntry {
 }
 
 class HistoryService {
-  static const _key = 'conversion_history';
-
   static Future<List<HistoryEntry>> getHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(_key) ?? [];
-    return raw
-        .map((e) => HistoryEntry.fromJson(jsonDecode(e)))
-        .toList()
-        .reversed
-        .toList();
+    final file = _getHistoryFile();
+    if (!file.existsSync()) return [];
+    try {
+      final raw = List<String>.from(jsonDecode(file.readAsStringSync()));
+      return raw
+          .map((e) => HistoryEntry.fromJson(jsonDecode(e)))
+          .toList()
+          .reversed
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   static Future<void> addEntry(HistoryEntry entry) async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(_key) ?? [];
-    raw.add(jsonEncode(entry.toJson()));
-    if (raw.length > 100) raw.removeAt(0);
-    await prefs.setStringList(_key, raw);
+    try {
+      final file = _getHistoryFile();
+      List<String> raw = [];
+      if (file.existsSync()) {
+        raw = List<String>.from(jsonDecode(file.readAsStringSync()));
+      }
+      raw.add(jsonEncode(entry.toJson()));
+      if (raw.length > 100) raw.removeAt(0);
+      file.parent.createSync(recursive: true);
+      file.writeAsStringSync(jsonEncode(raw));
+    } catch (_) {}
   }
 
   static Future<void> clearHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key);
+    try {
+      final file = _getHistoryFile();
+      if (file.existsSync()) file.deleteSync();
+    } catch (_) {}
+  }
+
+  static File _getHistoryFile() {
+    final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.';
+    return File('$home/.config/vaivart/history.json');
   }
 }
