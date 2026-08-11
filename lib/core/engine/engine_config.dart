@@ -3,6 +3,7 @@ import 'dart:io';
 import 'tool_resolver.dart';
 
 enum EngineType { lightweight, powerful, manual }
+enum FfmpegBuildType { gpl, lgpl }
 
 class EngineConfig {
   static bool get isAndroid => Platform.isAndroid;
@@ -10,6 +11,7 @@ class EngineConfig {
       Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
   static EngineType? _cachedEngine;
+  static FfmpegBuildType? _cachedFfmpegBuild;
 
   static Future<EngineType> getEngine() async {
     if (_cachedEngine != null) return _cachedEngine!;
@@ -41,6 +43,43 @@ class EngineConfig {
         } catch (_) {}
       }
       data['engine'] = engine.index;
+      configFile.parent.createSync(recursive: true);
+      configFile.writeAsStringSync(jsonEncode(data));
+    } catch (_) {}
+  }
+
+  // ── FFmpeg build type (GPL / LGPL) ─────────────────────────────
+
+  static Future<FfmpegBuildType> getFfmpegBuildType() async {
+    if (_cachedFfmpegBuild != null) return _cachedFfmpegBuild!;
+    final configFile = _getConfigFile();
+    if (configFile.existsSync()) {
+      try {
+        final content = jsonDecode(configFile.readAsStringSync());
+        if (content is Map && content.containsKey('ffmpegBuild')) {
+          final val = content['ffmpegBuild'] as int;
+          if (val >= 0 && val < FfmpegBuildType.values.length) {
+            _cachedFfmpegBuild = FfmpegBuildType.values[val];
+            return _cachedFfmpegBuild!;
+          }
+        }
+      } catch (_) {}
+    }
+    _cachedFfmpegBuild = FfmpegBuildType.gpl;
+    return _cachedFfmpegBuild!;
+  }
+
+  static Future<void> setFfmpegBuildType(FfmpegBuildType buildType) async {
+    _cachedFfmpegBuild = buildType;
+    try {
+      final configFile = _getConfigFile();
+      Map<String, dynamic> data = {};
+      if (configFile.existsSync()) {
+        try {
+          data = Map<String, dynamic>.from(jsonDecode(configFile.readAsStringSync()));
+        } catch (_) {}
+      }
+      data['ffmpegBuild'] = buildType.index;
       configFile.parent.createSync(recursive: true);
       configFile.writeAsStringSync(jsonEncode(data));
     } catch (_) {}
@@ -92,3 +131,4 @@ class EngineConfig {
     return path != null;
   }
 }
+

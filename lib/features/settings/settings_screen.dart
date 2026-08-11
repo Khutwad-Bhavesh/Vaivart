@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,6 +9,8 @@ import '../../core/services/output_service.dart';
 import '../../core/engine/tool_resolver.dart';
 import '../../core/engine/engine_downloader.dart';
 import '../../core/engine/binary_downloader_service.dart';
+import '../../core/engine/update_checker_service.dart';
+import '../../core/engine/engine_config.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -27,6 +30,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isDownloadingTool = false;
   double _downloadProgress = 0.0;
   String _downloadStatus = '';
+  List<ToolUpdateStatus> _updateStatuses = [];
+  int _ffmpegBuildType = 0; // 0 = GPL, 1 = LGPL
 
   final _engines = ['Lightweight', 'Powerful', 'Manual'];
   final _engineSubs = [
@@ -52,15 +57,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _installCommand = command;
     });
 
+    _loadFfmpegBuildType();
     _refreshTools();
+  }
+
+  Future<void> _loadFfmpegBuildType() async {
+    final buildType = await EngineConfig.getFfmpegBuildType();
+    if (!mounted) return;
+    setState(() => _ffmpegBuildType = buildType.index);
   }
 
   Future<void> _refreshTools() async {
     setState(() => _loadingTools = true);
     final tools = await ToolResolver.checkAllTools();
+    final updates = await UpdateCheckerService.checkForUpdates();
     if (!mounted) return;
     setState(() {
       _toolStatuses = tools;
+      _updateStatuses = updates;
       _loadingTools = false;
     });
   }
@@ -101,6 +115,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('engine', val);
     setState(() => _engine = val);
+  }
+
+  Future<void> _setFfmpegBuildType(int val) async {
+    if (val == _ffmpegBuildType) return;
+    final newBuild = FfmpegBuildType.values[val];
+    final isDownloaded = await BinaryDownloaderService.isToolDownloaded('ffmpeg');
+
+    if (isDownloaded && mounted) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) {
+          final isDark = Theme.of(ctx).brightness == Brightness.dark;
+          final textPrimary = isDark ? AppColors.darkText : AppColors.lightText;
+          final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+          return AlertDialog(
+            backgroundColor: isDark ? AppColors.darkBgSecondary : AppColors.lightBgSecondary,
+            title: Text('Switch FFmpeg Build?', style: TextStyle(color: textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
+            content: Text(
+              'Switching build type requires re-downloading FFmpeg. The existing binary will be replaced.\n\nContinue?',
+              style: TextStyle(color: textSecondary, fontSize: 13),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text('Cancel', style: TextStyle(color: textSecondary)),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Re-download', style: TextStyle(color: AppColors.teal)),
+              ),
+            ],
+          );
+        },
+      );
+      if (confirmed != true) return;
+    }
+
+    await EngineConfig.setFfmpegBuildType(newBuild);
+    setState(() => _ffmpegBuildType = val);
+
+    if (isDownloaded) {
+      // Delete old binary and version file, then re-download
+      try {
+        final binDir = await ToolResolver.getAppBinDir();
+        final info = BinaryDownloaderService.getDownloadInfo('ffmpeg', buildType: FfmpegBuildType.values[_ffmpegBuildType == 0 ? 1 : 0]);
+        if (info != null) {
+          final oldBinary = File('${binDir.path}/${info.binaryFileName}');
+          final oldVersion = File('${binDir.path}/ffmpeg.version.json');
+          if (await oldBinary.exists()) await oldBinary.delete();
+          if (await oldVersion.exists()) await oldVersion.delete();
+          ToolResolver.clearCache();
+        }
+      } catch (_) {}
+      _downloadTool('ffmpeg');
+    }
   }
 
   Future<void> _pickOutputDir() async {
@@ -174,6 +243,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             }),
 
+            // FFmpeg Build Type section — only visible for Powerful / Manual engines
+            if (_engine != 0) ...[
+              const SizedBox(height: 24),
+              _SectionHeader(label: 'FFMPEG BUILD TYPE', textTertiary: textTertiary),
+              const SizedBox(height: 4),
+              Text(
+                Platform.isMacOS
+                    ? 'macOS only has GPL builds available.'
+                    : 'Choose which FFmpeg variant to use for media conversions.',
+                style: AppTypography.caption.copyWith(color: textTertiary),
+              ),
+              if (!Platform.isMacOS) ...[
+                const SizedBox(height: 10),
+                ...[
+                  {
+                    'title': 'GPL',
+                    'sub': 'Full codec support — x264, x265, libfdk-aac, libass. Larger download.',
+                    'index': 0,
+                  },
+                  {
+                    'title': 'LGPL',
+                    'sub': 'Lighter build, fewer codecs. More permissive license.',
+                    'index': 1,
+                  },
+                ].map((opt) {
+                  final i = opt['index'] as int;
+                  final isSelected = _ffmpegBuildType == i;
+                  return GestureDetector(
+                    onTap: _isDownloadingTool ? null : () => _setFfmpegBuildType(i),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isSelected ? (isDark ? AppColors.darkBgTertiary : AppColors.lightBgTertiary) : bg,
+                        border: Border.all(color: isSelected ? AppColors.teal : border, width: isSelected ? 1 : 0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(opt['title'] as String, style: AppTypography.label.copyWith(color: textPrimary)),
+                                const SizedBox(height: 2),
+                                Text(opt['sub'] as String, style: AppTypography.caption.copyWith(color: textTertiary)),
+                              ],
+                            ),
+                          ),
+                          if (isSelected)
+                            Container(
+                              width: 8, height: 8,
+                              decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.teal),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ],
+
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -245,6 +376,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ],
                         ..._toolStatuses.map((t) {
                           final canDownload = !t.isInstalled && BinaryDownloaderService.getDownloadInfo(t.name) != null;
+                          final updateStatus = _updateStatuses.cast<ToolUpdateStatus?>().firstWhere(
+                            (u) => u?.toolName == t.name,
+                            orElse: () => null,
+                          );
+                          final hasUpdate = updateStatus != null && updateStatus.updateAvailable && t.isInstalled;
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -255,7 +391,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   height: 8,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: t.isInstalled ? AppColors.teal : Colors.orangeAccent,
+                                    color: t.isInstalled
+                                        ? (hasUpdate ? Colors.amber : AppColors.teal)
+                                        : Colors.orangeAccent,
                                   ),
                                 ),
                                 const SizedBox(width: 10),
@@ -268,8 +406,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   '(${t.category})',
                                   style: AppTypography.caption.copyWith(color: textTertiary),
                                 ),
+                                if (hasUpdate) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'v${updateStatus.installedVersion ?? "?"} → v${updateStatus.latestVersion}',
+                                      style: AppTypography.caption.copyWith(color: Colors.amber.shade700, fontSize: 9, fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                ],
                                 const Spacer(),
-                                if (canDownload && !_isDownloadingTool) ...[
+                                if (hasUpdate && !_isDownloadingTool) ...[
+                                  GestureDetector(
+                                    onTap: () => _downloadTool(t.name),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.system_update_alt_rounded, size: 12, color: Colors.amber.shade700),
+                                          const SizedBox(width: 4),
+                                          Text('Update', style: AppTypography.caption.copyWith(color: Colors.amber.shade700, fontSize: 10, fontWeight: FontWeight.w600)),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                ] else if (canDownload && !_isDownloadingTool) ...[
                                   GestureDetector(
                                     onTap: () => _downloadTool(t.name),
                                     child: Container(

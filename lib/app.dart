@@ -9,6 +9,7 @@ import 'features/pdf_tools/pdf_tools_screen.dart';
 import 'features/history/history_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'features/compression/compression_screen.dart';
+import 'core/engine/update_checker_service.dart';
 
 class FileConverterApp extends StatelessWidget {
   const FileConverterApp({super.key});
@@ -68,10 +69,43 @@ class _MainShellState extends State<MainShell> {
 
   Future<void> _checkOnboarded() async {
     final prefs = await SharedPreferences.getInstance();
+    final onboarded = prefs.getBool('onboarded') ?? false;
     setState(() {
-      _onboarded = prefs.getBool('onboarded') ?? false;
+      _onboarded = onboarded;
       _loading = false;
     });
+
+    if (onboarded) {
+      _checkForToolUpdates();
+    }
+  }
+
+  Future<void> _checkForToolUpdates() async {
+    try {
+      final updates = await UpdateCheckerService.checkForUpdates();
+      final available = updates.where((u) => u.updateAvailable && u.isInstalled).toList();
+      if (available.isEmpty || !mounted) return;
+
+      final names = available.map((u) {
+        final from = u.installedVersion ?? '?';
+        return '${u.toolName} ($from → ${u.latestVersion})';
+      }).join(', ');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Update available: $names. Go to Settings to update.'),
+          duration: const Duration(seconds: 6),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Settings',
+            textColor: AppColors.tealLight,
+            onPressed: () => setState(() => _selected = SidebarItem.settings),
+          ),
+        ),
+      );
+    } catch (_) {
+      // Silently ignore — update check is non-critical
+    }
   }
 
   Widget _buildScreen() {
